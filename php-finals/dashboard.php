@@ -1,11 +1,13 @@
 <?php
 session_start();
-require_once 'config.php';
-requireLogin();
+require_once 'Config.php';
 
-$tenants = readJsonFile(TENANTS_FILE);
-$properties = readJsonFile(PROPERTIES_FILE);
-$payments = readJsonFile(PAYMENTS_FILE);
+$config = new Config();
+$config->requireLogin();
+
+$tenants = $config->readJsonFile(TENANTS_FILE);
+$properties = $config->readJsonFile(PROPERTIES_FILE);
+$payments = $config->readJsonFile(PAYMENTS_FILE);
 
 $totalProperties = count($properties);
 $occupied = 0;

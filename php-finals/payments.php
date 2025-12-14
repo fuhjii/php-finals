@@ -1,10 +1,12 @@
 <?php
 session_start();
-require_once 'config.php';
-requireLogin();
+require_once 'Config.php';
 
-$payments = readJsonFile(PAYMENTS_FILE);
-$tenants = readJsonFile(TENANTS_FILE);
+$config = new Config();
+$config->requireLogin();
+
+$payments = $config->readJsonFile(PAYMENTS_FILE);
+$tenants = $config->readJsonFile(TENANTS_FILE);
 $error = '';
 $success = '';
 
@@ -12,20 +14,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
     if ($action === 'add') {
-        $tenant_id = sanitizeInput($_POST['tenant_id'] ?? '');
-        $month = sanitizeInput($_POST['month'] ?? '');
-        $amount = sanitizeInput($_POST['amount'] ?? '');
-        $status = sanitizeInput($_POST['status'] ?? 'Unpaid');
+        $tenant_id = $config->sanitizeInput($_POST['tenant_id'] ?? '');
+        $month = $config->sanitizeInput($_POST['month'] ?? '');
+        $amount = $config->sanitizeInput($_POST['amount'] ?? '');
+        $status = $config->sanitizeInput($_POST['status'] ?? 'Unpaid');
         
         if (empty($tenant_id) || empty($month) || empty($amount)) {
             $error = 'Please fill in all fields';
-        } elseif (!validateNumeric($amount)) {
+        } elseif (!$config->validateNumeric($amount)) {
             $error = 'Please enter a valid payment amount';
-        } elseif (!validateMonth($month)) {
+        } elseif (!$config->validateMonth($month)) {
             $error = 'Please enter a valid month in YYYY-MM format';
         } else {
             $newPayment = [
-                'id' => generateId(),
+                'id' => $config->generateId(),
                 'tenant_id' => $tenant_id,
                 'month' => $month,
                 'amount' => floatval($amount),
@@ -34,13 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             
             $payments[] = $newPayment;
-            writeJsonFile(PAYMENTS_FILE, $payments);
+            $config->writeJsonFile(PAYMENTS_FILE, $payments);
             $success = 'Payment record added successfully';
-            $payments = readJsonFile(PAYMENTS_FILE);
+            $payments = $config->readJsonFile(PAYMENTS_FILE);
         }
     } elseif ($action === 'update_status') {
-        $id = sanitizeInput($_POST['id'] ?? '');
-        $status = sanitizeInput($_POST['status'] ?? '');
+        $id = $config->sanitizeInput($_POST['id'] ?? '');
+        $status = $config->sanitizeInput($_POST['status'] ?? '');
         
         foreach ($payments as &$payment) {
             if ($payment['id'] === $id) {
@@ -49,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
         }
-        writeJsonFile(PAYMENTS_FILE, $payments);
+        $config->writeJsonFile(PAYMENTS_FILE, $payments);
         $success = 'Payment status updated successfully';
     } elseif ($action === 'delete') {
         $id = $_POST['id'] ?? '';
@@ -61,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        writeJsonFile(PAYMENTS_FILE, $newPayments);
+        $config->writeJsonFile(PAYMENTS_FILE, $newPayments);
         $success = 'Payment record deleted successfully';
         $payments = $newPayments;
     }

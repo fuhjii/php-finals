@@ -5,5 +5,12 @@
         "email": "farhanhajijamil@gmail.com",
         "password": "$2y$10$3MUxq856BwtxPibWGEMcjOOMkX\/3p6JP13JKKE16uVeS4p1cG8MM2",
         "created_at": "2025-11-24 02:19:08"
+    },
+    {
+        "id": "693b6c0e4aad85.79692988",
+        "name": "Tano",
+        "email": "greggivanov@gmail.com",
+        "password": "$2y$10$DwsTt0UwpFfps\/3RzyfWXuOfRSRSc9SRezVdUAA7\/2kqaPf0wqiq2",
+        "created_at": "2025-12-12 02:12:46"
     }
 ]

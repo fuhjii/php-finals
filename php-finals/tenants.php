@@ -1,10 +1,13 @@
 <?php
 session_start();
-require_once 'config.php';
-requireLogin();
+require_once 'Config.php';
 
-$tenants = readJsonFile(TENANTS_FILE);
-$properties = readJsonFile(PROPERTIES_FILE);
+$config = new Config();
+
+$config->requireLogin();
+
+$tenants = $config->readJsonFile(TENANTS_FILE);
+$properties = $config->readJsonFile(PROPERTIES_FILE);
 $error = '';
 $success = '';
 
@@ -12,21 +15,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
     if ($action === 'add') {
-        $name = sanitizeInput($_POST['name'] ?? '');
-        $phone = sanitizeInput($_POST['phone'] ?? '');
-        $email = sanitizeInput($_POST['email'] ?? '');
-        $property_id = sanitizeInput($_POST['property_id'] ?? '');
-        $monthly_rent = sanitizeInput($_POST['monthly_rent'] ?? '');
+        $name = $config->sanitizeInput($_POST['name'] ?? '');
+        $phone = $config->sanitizeInput($_POST['phone'] ?? '');
+        $email = $config->sanitizeInput($_POST['email'] ?? '');
+        $property_id = $config->sanitizeInput($_POST['property_id'] ?? '');
+        $monthly_rent = $config->sanitizeInput($_POST['monthly_rent'] ?? '');
         
         if (empty($name) || empty($phone) || empty($email) || empty($property_id) || empty($monthly_rent)) {
             $error = 'Please fill in all fields';
-        } elseif (!validateEmail($email)) {
+        } elseif (!$config->validateEmail($email)) {
             $error = 'Please enter a valid email address';
-        } elseif (!validateNumeric($monthly_rent)) {
+        } elseif (!$config->validateNumeric($monthly_rent)) {
             $error = 'Please enter a valid rent amount';
         } else {
             $newTenant = [
-                'id' => generateId(),
+                'id' => $config->generateId(),
                 'name' => $name,
                 'phone' => $phone,
                 'email' => $email,
@@ -36,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             
             $tenants[] = $newTenant;
-            writeJsonFile(TENANTS_FILE, $tenants);
+            $config->writeJsonFile(TENANTS_FILE, $tenants);
             
             foreach ($properties as &$property) {
                 if ($property['id'] === $property_id) {
@@ -45,10 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     break;
                 }
             }
-            writeJsonFile(PROPERTIES_FILE, $properties);
+            $config->writeJsonFile(PROPERTIES_FILE, $properties);
             
             $success = 'Tenant added successfully';
-            $tenants = readJsonFile(TENANTS_FILE);
+            $tenants = $config->readJsonFile(TENANTS_FILE);
         }
     } elseif ($action === 'delete') {
         $id = $_POST['id'] ?? '';
@@ -63,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        writeJsonFile(TENANTS_FILE, $newTenants);
+        $config->writeJsonFile(TENANTS_FILE, $newTenants);
         
         if ($deletedTenant) {
             foreach ($properties as &$property) {
@@ -73,23 +76,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     break;
                 }
             }
-            writeJsonFile(PROPERTIES_FILE, $properties);
+            $config->writeJsonFile(PROPERTIES_FILE, $properties);
         }
         
         $success = 'Tenant deleted successfully';
         $tenants = $newTenants;
     } elseif ($action === 'update') {
-        $id = sanitizeInput($_POST['id'] ?? '');
-        $name = sanitizeInput($_POST['name'] ?? '');
-        $phone = sanitizeInput($_POST['phone'] ?? '');
-        $email = sanitizeInput($_POST['email'] ?? '');
-        $monthly_rent = sanitizeInput($_POST['monthly_rent'] ?? '');
+        $id = $config->sanitizeInput($_POST['id'] ?? '');
+        $name = $config->sanitizeInput($_POST['name'] ?? '');
+        $phone = $config->sanitizeInput($_POST['phone'] ?? '');
+        $email = $config->sanitizeInput($_POST['email'] ?? '');
+        $monthly_rent = $config->sanitizeInput($_POST['monthly_rent'] ?? '');
         
         if (empty($name) || empty($phone) || empty($email) || empty($monthly_rent)) {
             $error = 'Please fill in all fields';
-        } elseif (!validateEmail($email)) {
+        } elseif (!$config->validateEmail($email)) {
             $error = 'Please enter a valid email address';
-        } elseif (!validateNumeric($monthly_rent)) {
+        } elseif (!$config->validateNumeric($monthly_rent)) {
             $error = 'Please enter a valid rent amount';
         } else {
             foreach ($tenants as &$tenant) {
@@ -101,13 +104,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     break;
                 }
             }
-            writeJsonFile(TENANTS_FILE, $tenants);
+            $config->writeJsonFile(TENANTS_FILE, $tenants);
             $success = 'Tenant updated successfully';
         }
     }
 }
 
-$properties = readJsonFile(PROPERTIES_FILE);
+$properties = $config->readJsonFile(PROPERTIES_FILE);
 $vacantProperties = array_filter($properties, function($p) {
     return $p['status'] === 'Vacant';
 });

@@ -1,9 +1,12 @@
 <?php
 session_start();
-require_once 'config.php';
-requireLogin();
+require_once 'Config.php';
 
-$tenants = readJsonFile(TENANTS_FILE);
+$config = new Config();
+
+$config->requireLogin();
+
+$tenants = $config->readJsonFile(TENANTS_FILE);
 $error = '';
 $success = '';
 
@@ -11,14 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
     if ($action === 'update') {
-        $id = sanitizeInput($_POST['id'] ?? '');
-        $name = sanitizeInput($_POST['name'] ?? '');
-        $phone = sanitizeInput($_POST['phone'] ?? '');
-        $email = sanitizeInput($_POST['email'] ?? '');
+        $id = $config->sanitizeInput($_POST['id'] ?? '');
+        $name = $config->sanitizeInput($_POST['name'] ?? '');
+        $phone = $config->sanitizeInput($_POST['phone'] ?? '');
+        $email = $config->sanitizeInput($_POST['email'] ?? '');
         
         if (empty($name) || empty($phone) || empty($email)) {
             $error = 'Please fill in all fields';
-        } elseif (!validateEmail($email)) {
+        } elseif (!$config->validateEmail($email)) {
             $error = 'Please enter a valid email address';
         } else {
             foreach ($tenants as &$tenant) {
@@ -29,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     break;
                 }
             }
-            writeJsonFile(TENANTS_FILE, $tenants);
+            $config->writeJsonFile(TENANTS_FILE, $tenants);
             $success = 'Contact information updated successfully';
         }
     }

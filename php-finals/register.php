@@ -1,6 +1,8 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once 'Config.php';
+
+$config = new Config();
 
 if (isLoggedIn()) {
     header('Location: dashboard.php');
@@ -11,21 +13,21 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = sanitizeInput($_POST['name'] ?? '');
-    $email = sanitizeInput($_POST['email'] ?? '');
+    $name = $config->sanitizeInput($_POST['name'] ?? '');
+    $email = $config->sanitizeInput($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     
     if (empty($name) || empty($email) || empty($password) || empty($confirm_password)) {
         $error = 'Please fill in all fields';
-    } elseif (!validateEmail($email)) {
+    } elseif (!$config->validateEmail($email)) {
         $error = 'Please enter a valid email address';
     } elseif (strlen($password) < 6) {
         $error = 'Password must be at least 6 characters long';
     } elseif ($password !== $confirm_password) {
         $error = 'Passwords do not match';
     } else {
-        $users = readJsonFile(USERS_FILE);
+        $users = $config->readJsonFile(USERS_FILE);
         
         foreach ($users as $user) {
             if ($user['email'] === $email) {
@@ -36,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if (empty($error)) {
             $newUser = [
-                'id' => generateId(),
+                'id' => $config->generateId(),
                 'name' => $name,
                 'email' => $email,
                 'password' => password_hash($password, PASSWORD_DEFAULT),
@@ -44,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             
             $users[] = $newUser;
-            writeJsonFile(USERS_FILE, $users);
+            $config->writeJsonFile(USERS_FILE, $users);
             
             header('Location: login.php?registered=1');
             exit();
@@ -70,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="alert alert-error"><?php echo $error; ?></div>
             <?php endif; ?>
             
-            <form method="POST" action="">
+            <form method="POST" action="register.php">
                 <div class="form-group">
                     <label for="name">Full Name</label>
                     <input type="text" id="name" name="name" required value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>">

@@ -1,6 +1,8 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once 'Config.php';
+
+$config = new Config();
 
 if (isLoggedIn()) {
     header('Location: dashboard.php');
@@ -8,17 +10,15 @@ if (isLoggedIn()) {
 }
 
 $error = '';
-$success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = sanitizeInput($_POST['email'] ?? '');
+    $email = $config->sanitizeInput($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     
     if (empty($email) || empty($password)) {
         $error = 'Please fill in all fields';
     } else {
-        $users = readJsonFile(USERS_FILE);
-        $userFound = false;
+        $users = $config->readJsonFile(USERS_FILE);
         
         foreach ($users as $user) {
             if ($user['email'] === $email && password_verify($password, $user['password'])) {
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="alert alert-success">Registration successful! Please login.</div>
             <?php endif; ?>
             
-            <form method="POST" action="">
+            <form method="POST" action="login.php">
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <input type="email" id="email" name="email" required>

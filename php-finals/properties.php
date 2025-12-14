@@ -1,9 +1,12 @@
 <?php
 session_start();
-require_once 'config.php';
-requireLogin();
+require_once 'Config.php';
 
-$properties = readJsonFile(PROPERTIES_FILE);
+$config = new Config();
+
+$config->requireLogin();
+
+$properties = $config->readJsonFile(PROPERTIES_FILE);
 $error = '';
 $success = '';
 
@@ -11,16 +14,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
     if ($action === 'add') {
-        $name = sanitizeInput($_POST['name'] ?? '');
-        $address = sanitizeInput($_POST['address'] ?? '');
-        $type = sanitizeInput($_POST['type'] ?? '');
-        $status = sanitizeInput($_POST['status'] ?? 'Vacant');
+        $name = $config->sanitizeInput($_POST['name'] ?? '');
+        $address = $config->sanitizeInput($_POST['address'] ?? '');
+        $type = $config->sanitizeInput($_POST['type'] ?? '');
+        $status = $config->sanitizeInput($_POST['status'] ?? 'Vacant');
         
         if (empty($name) || empty($address) || empty($type)) {
             $error = 'Please fill in all fields';
         } else {
             $newProperty = [
-                'id' => generateId(),
+                'id' => $config->generateId(),
                 'name' => $name,
                 'address' => $address,
                 'type' => $type,
@@ -29,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             
             $properties[] = $newProperty;
-            writeJsonFile(PROPERTIES_FILE, $properties);
+            $config->writeJsonFile(PROPERTIES_FILE, $properties);
             $success = 'Property added successfully';
-            $properties = readJsonFile(PROPERTIES_FILE);
+            $properties = $config->readJsonFile(PROPERTIES_FILE);
         }
     } elseif ($action === 'delete') {
         $id = $_POST['id'] ?? '';
@@ -43,15 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         
-        writeJsonFile(PROPERTIES_FILE, $newProperties);
+        $config->writeJsonFile(PROPERTIES_FILE, $newProperties);
         $success = 'Property deleted successfully';
         $properties = $newProperties;
     } elseif ($action === 'update') {
-        $id = sanitizeInput($_POST['id'] ?? '');
-        $name = sanitizeInput($_POST['name'] ?? '');
-        $address = sanitizeInput($_POST['address'] ?? '');
-        $type = sanitizeInput($_POST['type'] ?? '');
-        $status = sanitizeInput($_POST['status'] ?? '');
+        $id = $config->sanitizeInput($_POST['id'] ?? '');
+        $name = $config->sanitizeInput($_POST['name'] ?? '');
+        $address = $config->sanitizeInput($_POST['address'] ?? '');
+        $type = $config->sanitizeInput($_POST['type'] ?? '');
+        $status = $config->sanitizeInput($_POST['status'] ?? '');
         
         if (empty($name) || empty($address) || empty($type) || empty($status)) {
             $error = 'Please fill in all fields';
@@ -65,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     break;
                 }
             }
-            writeJsonFile(PROPERTIES_FILE, $properties);
+            $config->writeJsonFile(PROPERTIES_FILE, $properties);
             $success = 'Property updated successfully';
         }
     }
